@@ -1,13 +1,19 @@
 import math
-
+import keyboard
 import pymem
+from time import sleep 
+import win32api
+import asyncio
+from multiprocessing import Process
 
 m_iGlowIndex = 0x10488
-dwGlowObjectManager = 0x5359988
-dwEntityList = 0x4DFEF0C
-dwLocalPlayer = 0xDE997C
+dwGlowObjectManager = 0x535AA08
+dwEntityList = 0x4DFFF7C
+dwLocalPlayer = 0xDEA98C
 dwClientState = 0x59F19C
-dwClientState_ViewAngles = 0x4D90
+dwClientState_ViewAngles = 0x4D90a
+dwForceJump = 0x52BBCD8
+m_fFlags = 0x104
 
 pm = pymem.Pymem("csgo.exe")
 client = pymem.process.module_from_name(pm.process_handle, "client.dll").lpBaseOfDll
@@ -80,12 +86,38 @@ def glowhack():
             if entity:
                 entityglowing = pm.read_int(entity + m_iGlowIndex)
                 pm.write_float(glow + entityglowing * 0x38 + 0x8, float(1))  # red
-                pm.write_float(glow + entityglowing * 0x38 + 0xC, float(0))  # green
-                pm.write_float(glow + entityglowing * 0x38 + 0x10, float(0))  # blue
-                pm.write_float(glow + entityglowing * 0x38 + 0x14, float(1))
+                pm.write_float(glow + entityglowing * 0x38 + 0xC, float(1))  # green
+                pm.write_float(glow + entityglowing * 0x38 + 0x10, float(1))  # blue
+                pm.write_float(glow + entityglowing * 0x38 + 0x14, float(.7))
                 pm.write_int(glow + entityglowing * 0x38 + 0x28, 1)
+
+jump = client + dwForceJump
+def bhop():
+    while True:
+        try:
+            if win32api.GetAsyncKeyState(32):
+                player = pm.read_int(client + dwLocalPlayer)
+                playerstate = pm.read_int(player + m_fFlags)
+                if (playerstate == 257):
+                    pm.write_int(jump, 5)
+                    sleep(.2)
+                    pm.write_int(jump, 4)
+        except:
+            pass
+
+def main():
+    print(1)
+    pass
+
 
 
 if __name__ == '__main__':
-    glowhack()
-    # aimhack()
+    p1 = Process(target=bhop)
+    p2 = Process(target=glowhack)
+    # p3 = Process(target=aimhack)
+    p1.start()
+    p2.start()
+    # p3.start()
+    p1.join()
+    p2.join()
+    # p3.join()
