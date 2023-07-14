@@ -100,7 +100,7 @@ def bhop():
                 playerstate = pm.read_int(player + m_fFlags)
                 if (playerstate == 257):
                     pm.write_int(jump, 5)
-                    sleep(.2)
+                    sleep(.1)
                     pm.write_int(jump, 4)
         except:
             pass
